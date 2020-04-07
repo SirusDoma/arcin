@@ -1,10 +1,25 @@
 arcin
 =====
-This repository contains firmware code for the arcin v1.1, a custom game controller board with support for 11 buttons, 2 analog or quadrature encoders, 2 always-on LCDs, and WS2812B LED lighting via the B9 connector.
+This repository contains firmware code for the arcin v1.1, a custom game controller board with support for 11 buttons, 2 analog or quadrature encoders, 2 always-on LEDs, and WS2812B LED lighting via the B9 connector.
 
-The `svre9` branch in this repository contains modifications to improve user experience when using this board with DJ Dao SVRE9 or SVSE5 game controllers outfitted with arcade-style encoders.
+This repository also contains necessary files for building and testing firmware, as well as creating binaries that can be distributed to users to easily flash their arcin.
 
-The original codebase by zyp is available at: http://cgit.jvnv.net/arcin/log/?h=conf (the `svre9` branch is based on the current HEAD of the `conf` branch, `1cb55ca06ecbc3666d3bf66a583a768f69bf9278`)
+Credits for the original codebase, forked repos, and many changes: zyp, K, handrew
+The original codebase by zyp can be found at: http://cgit.jvnv.net/arcin/log/?h=conf
+
+Branches
+--------
+Each branch contains its own modifications made with a specific game/controller in mind.
+
+`sdvx-ac8` is intended for use with DJ Dao SVRE9 or SVSE5 game controllers outfitted with arcade-style encoders (digital potentiometers). In addition to implementing software-based smoothing, it is also configured to use the B9 connector to control WS2812B LED strips via HID lighting in supported games.
+
+`sdvx-ac16` is the same as `sdvx-ac8` except it is modified to capture/output a 16-bit value for the two "analog" axes. This is useful for games that natively accept a more precise 16-bit value for these axes.
+
+*Note:* either of these firmwares can technically be used with any basic "analog" potentiometer. If using a digital potentiometer it must have an operating voltage of 3.3v (for example, digital pots that require 5v VCC will not work with the arcin). The firmwares in this repository do not natively support Copal, Bourns, or any other types of rotary encoders, although the arcin hardware does support them.
+
+Pre-Built Images
+----------------
+If you are only interested in a pre-compiled binary, the `bin` folder of each branch contains an up-to-date EXE you can use to flash your device.
 
 Setup
 -----
@@ -26,8 +41,6 @@ After building an image using `scons`, use the Python script in the arcin-utils 
 
 1. `./hidloader_append.py arcin.elf hidloader_v2.exe arcin_flash_custom.exe`
 
-Pre-Built Images
-----------------
 The `bin/` directory in this repository contains already built and packaged firmwares. The `.elf` files can be flashed onto a device using the `hidflash.py` script. Standalone `.exe` files are also provided.
 
 - `arcin-svre9-alpha`: A modification of arcin firmware suited for SVRE9 or SVSE5 controllers, which aims to reduce noise from analog inputs.
