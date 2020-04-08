@@ -5,6 +5,7 @@ This repository contains firmware code for the arcin v1.1, a custom game control
 This repository also contains necessary files for building and testing firmware, as well as creating binaries that can be distributed to users to easily flash their arcin.
 
 Credits for the original codebase, forked repos, and many changes: zyp, K, handrew
+
 The original codebase by zyp can be found at: http://cgit.jvnv.net/arcin/log/?h=conf
 
 Branches
@@ -25,8 +26,9 @@ Setup
 -----
 1. Grab the ARM toolchain: https://launchpad.net/gcc-arm-embedded/+download
 2. You will need SCons to build the image: http://scons.org/pages/download.html
-3. `git submodule init`: this will pull the external `laks` submodule, which contains headers for the hardware used by the arcin.
-4. Supplementary scripts will require Python (2.7) as well as the hidapi plugin: https://pypi.python.org/pypi/hidapi/0.7.99.post16
+3. Supplementary scripts will require Python (2.7) as well as the hidapi-libusb library
+4. Clone the branch you want to work with.
+5. `git submodule init`: this will pull the external `laks` submodule, which contains headers for the hardware used by the arcin.
 
 Building and Testing
 --------------------
@@ -37,11 +39,6 @@ See `simpletest.py` for an example test script to monitor HID reports generated 
 
 Packaging
 ---------
-After building an image using `scons`, use the Python script in the arcin-utils directory to build a custom hidloader EXE with your new firmware image embedded into it. This EXE can be given to users to easily flash their device.
+After building an image using `scons`, run the following command to build a custom hidloader EXE with your new firmware image embedded into it. This EXE can be given to users to easily flash their device. Substitute `arcin_flash_custom.exe` with whatever filename you want.
 
 1. `./hidloader_append.py arcin.elf hidloader_v2.exe arcin_flash_custom.exe`
-
-The `bin/` directory in this repository contains already built and packaged firmwares. The `.elf` files can be flashed onto a device using the `hidflash.py` script. Standalone `.exe` files are also provided.
-
-- `arcin-svre9-alpha`: A modification of arcin firmware suited for SVRE9 or SVSE5 controllers, which aims to reduce noise from analog inputs.
-- `arcin-svre9-alpha2`: A later modification of the above firmware, which further reduces noise from analog inputs at the cost of slightly lowered sensitivity.
