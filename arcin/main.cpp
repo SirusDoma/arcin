@@ -320,7 +320,7 @@ class AnalogAxis : public Axis {
 		}
 		
 		virtual uint32_t get() final {
-			return adc.DR;
+			return adc.DR >> 8;
 		}
 };
 
@@ -476,39 +476,39 @@ int main() {
 				last_y = qe2_count;
 			}
 			
-			// /* SVRE9 smoothing hack: ignore deltas of 1-2 */
-			// if(rx >= -2 && rx <= 2 && rx != 0) {
-			// 	qe1_count -= rx;
-			// }
-			// if(ry >= -2 && ry <= 2 && ry != 0) {
-			// 	qe2_count -= ry;
-			// }
+			/* SVRE9 smoothing hack: ignore deltas of 1-2 */
+			if(rx >= -2 && rx <= 2 && rx != 0) {
+				qe1_count -= rx;
+			}
+			if(ry >= -2 && ry <= 2 && ry != 0) {
+				qe2_count -= ry;
+			}
 
-			// if(state_x > 0) {
-			// 	buttons |= 1 << 11;
-			// } else if(state_x < 0) {
-			// 	buttons |= 1 << 12;
-			// }
+			if(state_x > 0) {
+				buttons |= 1 << 11;
+			} else if(state_x < 0) {
+				buttons |= 1 << 12;
+			}
 			
-			// if(state_y > 0) {
-			// 	buttons |= 1 << 13;
-			// } else if(state_y < 0) {
-			// 	buttons |= 1 << 14;
-			// }
+			if(state_y > 0) {
+				buttons |= 1 << 13;
+			} else if(state_y < 0) {
+				buttons |= 1 << 14;
+			}
 			
-			// if(config.qe1_sens < 0) {
-			// 	qe1_count /= -config.qe1_sens;
-			// } else if(config.qe1_sens > 0) {
-			// 	qe1_count *= config.qe1_sens;
-			// }
+			if(config.qe1_sens < 0) {
+				qe1_count /= -config.qe1_sens;
+			} else if(config.qe1_sens > 0) {
+				qe1_count *= config.qe1_sens;
+			}
 			
-			// if(config.qe2_sens < 0) {
-			// 	qe2_count /= -config.qe2_sens;
-			// } else if(config.qe2_sens > 0) {
-			// 	qe2_count *= config.qe2_sens;
-			// }
+			if(config.qe2_sens < 0) {
+				qe2_count /= -config.qe2_sens;
+			} else if(config.qe2_sens > 0) {
+				qe2_count *= config.qe2_sens;
+			}
 			
-			input_report_t report = {1, buttons, uint16_t(qe1_count), uint16_t(qe2_count)};
+			input_report_t report = {1, buttons, uint8_t(qe1_count), uint8_t(qe2_count)};
 			
 			usb.write(1, (uint32_t*)&report, sizeof(report));
 		}
