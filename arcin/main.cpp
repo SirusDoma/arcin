@@ -66,74 +66,74 @@ class WS2812B {
 		uint8_t dmabuf[25];
 		volatile uint32_t cnt;
 		volatile bool busy;
-		
+
 		void schedule_dma() {
 			cnt--;
-			
+
 			DMA1.reg.C[6].NDTR = 25;
 			DMA1.reg.C[6].MAR = (uint32_t)&dmabuf;
 			DMA1.reg.C[6].PAR = (uint32_t)&TIM4.CCR3;
 			DMA1.reg.C[6].CR = (0 << 10) | (1 << 8) | (1 << 7) | (0 << 6) | (1 << 4) | (1 << 1) | (1 << 0);
 		}
-		
+
 		void set_color(uint8_t r, uint8_t g, uint8_t b) {
 			uint32_t n = 0;
-			
+
 			for(uint32_t i = 8; i-- > 0; n++) {
 				dmabuf[n] = g & (1 << i) ? 58 : 29;
 			}
-			
+
 			for(uint32_t i = 8; i-- > 0; n++) {
 				dmabuf[n] = r & (1 << i) ? 58 : 29;
 			}
-			
+
 			for(uint32_t i = 8; i-- > 0; n++) {
 				dmabuf[n] = b & (1 << i) ? 58 : 29;
 			}
-			
+
 			dmabuf[n] = 0;
 		}
-		
+
 	public:
 		void init() {
 			RCC.enable(RCC.TIM4);
 			RCC.enable(RCC.DMA1);
-			
+
 			Interrupt::enable(Interrupt::DMA1_Channel7);
-			
+
 			TIM4.ARR = (72000000 / 800000) - 1; // period = 90, 0 = 29, 1 = 58
 			TIM4.CCR3 = 0;
-			
+
 			TIM4.CCMR2 = (6 << 4) | (1 << 3);
 			TIM4.CCER = 1 << 8;
 			TIM4.DIER = 1 << 8;
-			
+
 			GPIOB[8].set_af(2);
 			GPIOB[8].set_mode(Pin::AF);
 			GPIOB[8].set_pull(Pin::PullNone);
-			
+
 			TIM4.CR1 = 1 << 0;
-			
+
 			Time::sleep(1);
-			
+
 			update(0, 0, 0);
 		}
-		
+
 		void update(uint8_t r, uint8_t g, uint8_t b) {
 			if(busy) { return; }
 
 			set_color(r, g, b);
-			
+
 			cnt = 15;
 			busy = true;
-			
+
 			schedule_dma();
 		}
-		
+
 		void irq() {
 			DMA1.reg.C[6].CR = 0;
 			DMA1.reg.IFCR = 1 << 24;
-			
+
 			if(cnt) {
 				schedule_dma();
 			} else {
@@ -157,85 +157,85 @@ class HID_arcin : public USB_HID {
 			switch(report->func) {
 				case 0:
 					return true;
-				
+
 				case 0x10: // Reset to bootloader
 					do_reset_bootloader = true;
 					return true;
-				
+
 				case 0x20: // Reset to runtime
 					do_reset = true;
 					return true;
-				
+
 				default:
 					return false;
 			}
 		}
-		
+
 		bool set_feature_config(config_report_t* report) {
 			if(report->segment != 0) {
 				return false;
 			}
-			
+
 			configloader.write(report->size, report->data);
-			
+
 			return true;
 		}
-		
+
 		bool get_feature_config() {
 			config_report_t report = {0xc0, 0, sizeof(config)};
-			
+
 			memcpy(report.data, &config, sizeof(config));
-			
+
 			usb.write(0, (uint32_t*)&report, sizeof(report));
-			
+
 			return true;
 		}
-	
+
 	public:
 		HID_arcin(USB_generic& usbd, desc_t rdesc) : USB_HID(usbd, rdesc, 0, 1, 64) {}
-	
+
 	protected:
 		virtual bool set_output_report(uint32_t* buf, uint32_t len) {
 			if(len != sizeof(output_report_t)) {
 				return false;
 			}
-			
+
 			output_report_t* report = (output_report_t*)buf;
-			
+
 			last_led_time = Time::time();
 			button_leds.set(report->leds);
-			
+
 			ws2812b.update(report->r, report->b, report->g);
-			
+
 			return true;
 		}
-		
+
 		virtual bool set_feature_report(uint32_t* buf, uint32_t len) {
 			switch(*buf & 0xff) {
 				case 0xb0:
 					if(len != sizeof(bootloader_report_t)) {
 						return false;
 					}
-					
+
 					return set_feature_bootloader((bootloader_report_t*)buf);
-				
+
 				case 0xc0:
 					if(len != sizeof(config_report_t)) {
 						return false;
 					}
-					
+
 					return set_feature_config((config_report_t*)buf);
-				
+
 				default:
 					return false;
 			}
 		}
-		
+
 		virtual bool get_feature_report(uint8_t report_id) {
 			switch(report_id) {
 				case 0xc0:
 					return get_feature_config();
-				
+
 				default:
 					return false;
 			}
@@ -254,26 +254,26 @@ class Axis {
 class QEAxis : public Axis {
 	private:
 		TIM_t& tim;
-	
+
 	public:
 		QEAxis(TIM_t& t) : tim(t) {}
-		
+
 		void enable(bool invert, int8_t sens) {
 			if(!invert) {
 				tim.CCER = 1 << 1;
 			}
-			
+
 			tim.CCMR1 = (1 << 8) | (1 << 0);
 			tim.SMCR = 3;
 			tim.CR1 = 1;
-			
+
 			if(sens < 0) {
 				tim.ARR = 256 * -sens - 1;
 			} else {
 				tim.ARR = 256 - 1;
 			}
 		}
-		
+
 		virtual uint32_t get() final {
 			return tim.CNT;
 		}
@@ -286,16 +286,16 @@ class AnalogAxis : public Axis {
 	private:
 		ADC_t& adc;
 		uint32_t ch;
-	
+
 	public:
 		AnalogAxis(ADC_t& a, uint32_t c) : adc(a), ch(c) {}
-		
+
 		void enable() {
 			// Turn on ADC regulator.
 			adc.CR = 0 << 28;
 			adc.CR = 1 << 28;
 			Time::sleep(2);
-			
+
 			// Calibrate ADC.
 			// ADEN = 0
 			adc.CR |= 0 << 30; // ADCALDIF
@@ -306,19 +306,19 @@ class AnalogAxis : public Axis {
 			// Configure continous capture on one channel.
 			adc.CFGR = (1 << 13) | (1 << 12) | (1 << 5); // CONT, OVRMOD, ALIGN
 			adc.SQR1 = (ch << 6);
-			
+
 			// RIP sampling rate change, back to defaults
 			//adc.SMPR1 = (7 << (ch * 3)); // 72 MHz / 64 / 614 = apx. 1.8 kHz
-			
+
 			// Enable ADC.
 			adc.CR |= 1 << 0; // ADEN
 			while(!(adc.ISR & (1 << 0))); // ADRDY
 			adc.ISR = (1 << 0); // ADRDY
-			
+
 			// Start conversion.
 			adc.CR |= 1 << 2; // ADSTART
 		}
-		
+
 		virtual uint32_t get() final {
 			return adc.DR;
 		}
@@ -329,125 +329,200 @@ AnalogAxis axis_ana2(ADC2, 4);
 
 int main() {
 	rcc_init();
-	
+
 	// Set ADC12PRES to /64.
 	//RCC.CFGR2 |= (0x19 << 4);
 
 	// Set ADC12PRES to /1.
 	RCC.CFGR2 |= (0x10 << 4);
-	
+
 	// Initialize system timer.
 	STK.LOAD = 72000000 / 8 / 1000; // 1000 Hz.
 	STK.CTRL = 0x03;
-	
+
 	// Load config.
 	configloader.read(sizeof(config), &config);
-	
+
 	RCC.enable(RCC.GPIOA);
 	RCC.enable(RCC.GPIOB);
 	RCC.enable(RCC.GPIOC);
-	
+
 	usb_dm.set_mode(Pin::AF);
 	usb_dm.set_af(14);
 	usb_dp.set_mode(Pin::AF);
 	usb_dp.set_af(14);
-	
+
 	RCC.enable(RCC.USB);
-	
+
 	usb.init();
-	
+
 	usb_pu.set_mode(Pin::Output);
 	usb_pu.on();
-	
+
 	button_inputs.set_mode(Pin::Input);
 	button_inputs.set_pull(Pin::PullUp);
-	
+
 	button_leds.set_mode(Pin::Output);
-	
+
 	led1.set_mode(Pin::Output);
 	led1.on();
-	
+
 	led2.set_mode(Pin::Output);
 	led2.on();
-	
+
 	Axis* axis_1;
-	
+
 	if(1) {
 		RCC.enable(RCC.ADC12);
-		
+
 		axis_ana1.enable();
-		
+
 		axis_1 = &axis_ana1;
-		
+
 	} else {
 		RCC.enable(RCC.TIM2);
-		
+
 		axis_qe1.enable(config.flags & (1 << 1), config.qe1_sens);
-		
+
 		qe1a.set_af(1);
 		qe1b.set_af(1);
 		qe1a.set_mode(Pin::AF);
 		qe1b.set_mode(Pin::AF);
-		
+
 		axis_1 = &axis_qe1;
 	}
-	
+
 	Axis* axis_2;
-	
+
 	if(1) {
 		RCC.enable(RCC.ADC12);
-		
+
 		axis_ana2.enable();
-		
+
 		axis_2 = &axis_ana2;
-		
+
 	} else {
 		RCC.enable(RCC.TIM3);
-		
+
 		axis_qe2.enable(config.flags & (1 << 2), config.qe2_sens);
-		
+
 		qe2a.set_af(1);
 		qe2b.set_af(1);
 		qe2a.set_mode(Pin::AF);
 		qe2b.set_mode(Pin::AF);
-		
+
 		axis_2 = &axis_qe2;
 	}
-	
+
 	ws2812b.init();
-	
+
+		/* Define variables for old smoothing
+			 and button simulation code.
+
 	uint8_t last_x = 0;
 	uint8_t last_y = 0;
-	
+
 	int8_t state_x = 0;
 	int8_t state_y = 0;
-	
+
+		*/
+
+		/* Set variables and initialize array
+			 for axis moving average.
+	 	   See below for an example and caveats.
+
+	const uint16_t qe1_numReadings = 250;
+	uint32_t qe1_readings[qe1_numReadings]; // Create array of [x] readings and initialize it
+	uint16_t qe1_readIndex = 0; // Position in the array, starting at 0
+	uint32_t qe1_total = 0;
+	uint32_t qe1_avg = 0;
+
+	for (uint32_t qe1_thisReading = 0; qe1_thisReading < qe1_numReadings; qe1_thisReading++) {
+		qe1_readings[qe1_thisReading] = 0;
+	}
+
+  	*/
+
+	uint32_t qe1_count = 0;
+	uint32_t qe2_count = 0;
+
 	while(1) {
 		usb.process();
-		
+
 		uint16_t buttons = button_inputs.get() ^ 0x7ff;
-		
+
 		if(do_reset_bootloader) {
 			Time::sleep(10);
 			reset_bootloader();
 		}
-		
+
 		if(do_reset) {
 			Time::sleep(10);
 			reset();
 		}
-		
+
 		if(Time::time() - last_led_time > 1000) {
 			button_leds.set(buttons);
 		}
-		
+
 		if(usb.ep_ready(1)) {
+
+			/* Old axis code - raw ADC reading (no smoothing)
+
 			uint32_t qe1_count = axis_1->get();
 			uint32_t qe2_count = axis_2->get();
-			
+
+			*/
+
+			// New axis code - basic static averaging
+
+				// Initialize both axes to zero
+			qe1_count = 0;
+			qe2_count = 0;
+			uint16_t qe_samples = 1000; // # of samples for averaging.
+
+				// Sample qe_samples times and add the values
+			for (uint16_t i=0; i < qe_samples; i++) {
+				qe1_count += axis_1->get();
+				qe2_count += axis_2->get();
+			}
+				// Average the values
+			qe1_count /= qe_samples;
+			qe2_count /= qe_samples;
+
+				// --------
+
+			/* If you wanna try a moving average, here is an example!
+				 In my testing it doesn't respond to changes quick enough
+				 to be useful for rhythm games though. With a low enough
+				 sample array size to be responsive, it's not enough smoothing.
+
+			qe1_total = qe1_total - qe1_readings[qe1_readIndex];
+  				// read from the sensor:
+  		qe1_readings[qe1_readIndex] = axis_1->get();
+  				// add the reading to the total:
+  		qe1_total = qe1_total + qe1_readings[qe1_readIndex];
+  				// advance to the next position in the array:
+  		qe1_readIndex = qe1_readIndex + 1;
+  				// if we're at the end of the array...
+  		if (qe1_readIndex >= qe1_numReadings) {
+    			// ...wrap around to the beginning:
+    	qe1_readIndex = 0;
+			}
+  				// calculate the average:
+  		qe1_avg = qe1_total / qe1_numReadings;
+			qe1_count = qe1_avg;
+
+			*/
+
+				// --------
+
+			/* Older smoothing/button sim code.
+				 Note: not adapted for 16-bit.
+
 			int8_t rx = qe1_count - last_x;
 			int8_t ry = qe2_count - last_y;
-			
+
 			if(rx > 2) {
 				state_x = 50;
 				last_x = qe1_count;
@@ -461,7 +536,7 @@ int main() {
 				state_x++;
 				last_x = qe1_count;
 			}
-			
+
 			if(ry > 2) {
 				state_y = 50;
 				last_y = qe2_count;
@@ -475,41 +550,44 @@ int main() {
 				state_y++;
 				last_y = qe2_count;
 			}
-			
-			// /* SVRE9 smoothing hack: ignore deltas of 1-2 */
-			// if(rx >= -2 && rx <= 2 && rx != 0) {
-			// 	qe1_count -= rx;
-			// }
-			// if(ry >= -2 && ry <= 2 && ry != 0) {
-			// 	qe2_count -= ry;
-			// }
 
-			// if(state_x > 0) {
-			// 	buttons |= 1 << 11;
-			// } else if(state_x < 0) {
-			// 	buttons |= 1 << 12;
-			// }
-			
-			// if(state_y > 0) {
-			// 	buttons |= 1 << 13;
-			// } else if(state_y < 0) {
-			// 	buttons |= 1 << 14;
-			// }
-			
-			// if(config.qe1_sens < 0) {
-			// 	qe1_count /= -config.qe1_sens;
-			// } else if(config.qe1_sens > 0) {
-			// 	qe1_count *= config.qe1_sens;
-			// }
-			
-			// if(config.qe2_sens < 0) {
-			// 	qe2_count /= -config.qe2_sens;
-			// } else if(config.qe2_sens > 0) {
-			// 	qe2_count *= config.qe2_sens;
-			// }
-			
+				// SVRE9 smoothing hack: ignore deltas of 1-2
+				// (Note: this was 8-bit dependent)
+			if(rx >= -2 && rx <= 2 && rx != 0) {
+				qe1_count -= rx;
+			}
+			if(ry >= -2 && ry <= 2 && ry != 0) {
+				qe2_count -= ry;
+			}
+
+			if(state_x > 0) {
+				buttons |= 1 << 11;
+			} else if(state_x < 0) {
+				buttons |= 1 << 12;
+			}
+
+			if(state_y > 0) {
+				buttons |= 1 << 13;
+			} else if(state_y < 0) {
+				buttons |= 1 << 14;
+			}
+
+			if(config.qe1_sens < 0) {
+				qe1_count /= -config.qe1_sens;
+			} else if(config.qe1_sens > 0) {
+				qe1_count *= config.qe1_sens;
+			}
+
+			if(config.qe2_sens < 0) {
+				qe2_count /= -config.qe2_sens;
+			} else if(config.qe2_sens > 0) {
+				qe2_count *= config.qe2_sens;
+			}
+
+			*/
+
 			input_report_t report = {1, buttons, uint16_t(qe1_count), uint16_t(qe2_count)};
-			
+
 			usb.write(1, (uint32_t*)&report, sizeof(report));
 		}
 	}
