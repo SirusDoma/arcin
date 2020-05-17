@@ -10,7 +10,7 @@ e = ELFFile(open(sys.argv[1]))
 buf = ''
 
 hid_arcin      = 0x1d50
-pid_runtime    = 0x6080
+pid_arcin      = 0x6080
 pid_bootloader = 0x6084
 
 for segment in sorted(e.iter_segments(), key = lambda x: x.header.p_paddr):
@@ -39,7 +39,7 @@ dev = hidapi.hid_open(hid_arcin, pid_bootloader, None)
 
 if not dev:
 	# Perhaps device is not in bootloader menu
-	dev = hidapi.hid_open(hid_arcin, pid_runtime, None)
+	dev = hidapi.hid_open(hid_arcin, pid_arcin, None)
 	
 	if not dev: 
 		raise RuntimeError('Device not found.')
@@ -85,7 +85,7 @@ time.sleep(1)
 
 hidapi.hid_exit()
 
-if hidapi.hid_open(hid_arcin, pid_runtime, None):
+if hidapi.hid_open(hid_arcin, pid_arcin, None):
 	print 'Done, everything ok.'
 	
 elif hidapi.hid_open(hid_arcin, pid_bootloader, None):

@@ -5,10 +5,10 @@ import struct
 from hidapi import hidapi
 import ctypes
 
-hid_arcin   = 0x1d50
-pid_runtime = 0x6080
+hid_arcin = 0x1d50
+pid_arcin = 0x6080
 
-hiddev = hidapi.hid_open(hid_arcin, pid_runtime, None)
+hiddev = hidapi.hid_open(hid_arcin, pid_arcin, None)
 	
 if not hiddev: 
 	raise RuntimeError('Target not found.')

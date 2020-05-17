@@ -12,6 +12,10 @@ f = open(sys.argv[3], 'ab')
 
 buf = ''
 
+hid_arcin      = 0x1d50
+pid_arcin      = 0x6080
+pid_bootloader = 0x6084
+
 for segment in sorted(e.iter_segments(), key = lambda x: x.header.p_paddr):
 	if segment.header.p_type != 'PT_LOAD':
 		continue
@@ -38,10 +42,10 @@ fsize = f.tell()
 f.write(struct.pack('<IHHHHHHI',
 	0xb007f00d,
 	1,
-	0x1d50,
-	0x6080,
-	0x1d50,
-	0x6084,
+	hid_arcin,
+	pid_arcin,
+	hid_arcin,
+	pid_bootloader,
 	0x0110,
 	len(buf),
 ))

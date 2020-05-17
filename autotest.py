@@ -10,7 +10,7 @@ import ctypes
 from elftools.elf.elffile import ELFFile
 
 hid_arcin      = 0x1d50
-pid_runtime    = 0x6080
+pid_arcin      = 0x6080
 pid_bootloader = 0x6084
 
 e = ELFFile(open('arcin.elf'))
@@ -171,7 +171,7 @@ def test_all():
 
 def process():
 	try:
-		open_hiddev(pid_runtime)
+		open_hiddev(pid_arcin)
 		
 		print 'Found runtime device, resetting to bootloader.'
 		
@@ -190,7 +190,7 @@ def process():
 		
 		time.sleep(1)
 		
-		open_hiddev(pid_runtime)
+		open_hiddev(pid_arcin)
 		
 		test_all()
 	
