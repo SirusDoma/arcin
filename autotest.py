@@ -9,7 +9,8 @@ import ctypes
 
 from elftools.elf.elffile import ELFFile
 
-pid_runtime = 0x6080
+hid_arcin      = 0x1d50
+pid_runtime    = 0x6080
 pid_bootloader = 0x6084
 
 e = ELFFile(open('arcin.elf'))
@@ -57,7 +58,7 @@ def open_hiddev(pid):
 	global hiddev
 	
 	hidapi.hid_exit()
-	hiddev = hidapi.hid_open(0x1d50, pid, None)
+	hiddev = hidapi.hid_open(hid_arcin, pid, None)
 	
 	if not hiddev: 
 		raise RuntimeError('Target not found.')

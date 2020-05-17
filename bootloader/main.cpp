@@ -7,6 +7,9 @@
 #include <usb/descriptor.h>
 #include <usb/hid.h>
 
+const uint16_t arcin_hardware_id     = 0x1d50;
+const uint16_t bootloader_product_id = 0x6084;
+
 static uint32_t& reset_reason = *(uint32_t*)0x10000000;
 static const uint32_t* firmware_vtors = (uint32_t*)0x8002000;
 
@@ -43,7 +46,7 @@ auto report_desc = pack(
 		)
 );
 
-auto dev_desc = device_desc(0x200, 0, 0, 0, 64, 0x1d50, 0x6084, 0x110, 1, 2, 3, 1);
+auto dev_desc = device_desc(0x200, 0, 0, 0, 64, arcin_hardware_id, bootloader_product_id, 0x110, 1, 2, 3, 1);
 auto conf_desc = configuration_desc(1, 1, 0, 0xc0, 0,
 	// HID interface.
 	interface_desc(0, 0, 1, 0x03, 0x00, 0x00, 0,

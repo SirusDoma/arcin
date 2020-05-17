@@ -13,6 +13,9 @@
 #include "configloader.h"
 #include "config.h"
 
+const uint16_t arcin_hardware_id = 0x1d50;
+const uint16_t arcin_product_id  = 0x6080;
+
 static uint32_t& reset_reason = *(uint32_t*)0x10000000;
 
 static bool do_reset_bootloader;
@@ -31,7 +34,7 @@ Configloader configloader(0x801f800);
 
 config_t config;
 
-auto dev_desc = device_desc(0x200, 0, 0, 0, 64, 0x1d50, 0x6080, 0x110, 1, 2, 3, 1);
+auto dev_desc = device_desc(0x200, 0, 0, 0, 64, arcin_hardware_id, arcin_product_id, 0x110, 1, 2, 3, 1);
 auto conf_desc = configuration_desc(1, 1, 0, 0xc0, 0,
 	// HID interface.
 	interface_desc(0, 0, 1, 0x03, 0x00, 0x00, 0,

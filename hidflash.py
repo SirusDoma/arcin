@@ -9,6 +9,10 @@ e = ELFFile(open(sys.argv[1]))
 
 buf = ''
 
+hid_arcin      = 0x1d50
+pid_runtime    = 0x6080
+pid_bootloader = 0x6084
+
 for segment in sorted(e.iter_segments(), key = lambda x: x.header.p_paddr):
 	if segment.header.p_type != 'PT_LOAD':
 		continue
@@ -31,10 +35,11 @@ if len(buf) & (64 - 1):
 	buf += '\0' * (64 - (len(buf) & (64 - 1)))
 
 # Open device
-dev = hidapi.hid_open(0x1d50, 0x6084, None)
+dev = hidapi.hid_open(hid_arcin, pid_bootloader, None)
 
 if not dev:
-	dev = hidapi.hid_open(0x1d50, 0x6080, None)
+	# Perhaps device is not in bootloader menu
+	dev = hidapi.hid_open(hid_arcin, pid_runtime, None)
 	
 	if not dev: 
 		raise RuntimeError('Device not found.')
@@ -49,7 +54,7 @@ if not dev:
 	
 	hidapi.hid_exit()
 	
-	dev = hidapi.hid_open(0x1d50, 0x6084, None)
+	dev = hidapi.hid_open(hid_arcin, pid_bootloader, None)
 	
 	if not dev: 
 		raise RuntimeError('Device not found.')
@@ -80,11 +85,11 @@ time.sleep(1)
 
 hidapi.hid_exit()
 
-if hidapi.hid_open(0x1d50, 0x6080, None):
+if hidapi.hid_open(hid_arcin, pid_runtime, None):
 	print 'Done, everything ok.'
 	
-elif hidapi.hid_open(0x1d50, 0x6084, None):
+elif hidapi.hid_open(hid_arcin, pid_bootloader, None):
 	print 'Still in bootloader mode.'
 
 else:
-	print 'Device disappeared.'
+	print 'Device disconnected.'
