@@ -9,8 +9,12 @@ e = ELFFile(open(sys.argv[1]))
 
 buf = ''
 
-hid_arcin      = 0x1d50
-pid_arcin      = 0x6080
+hid_arcin = 0x1d50
+pid_arcin = 0x6080
+
+hid_nemsys = 0x1ccf
+pid_nemsys = 0x1014
+
 pid_bootloader = 0x6084
 
 for segment in sorted(e.iter_segments(), key = lambda x: x.header.p_paddr):
@@ -40,7 +44,8 @@ dev = hidapi.hid_open(hid_arcin, pid_bootloader, None)
 if not dev:
 	# Perhaps device is not in bootloader menu
 	dev = hidapi.hid_open(hid_arcin, pid_arcin, None)
-	
+
+	# Ignore runtime nemsys mode, otherwise my real nemsys might get flashed accidentally lol
 	if not dev: 
 		raise RuntimeError('Device not found.')
 	

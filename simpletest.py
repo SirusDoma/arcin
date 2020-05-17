@@ -8,7 +8,13 @@ import ctypes
 hid_arcin = 0x1d50
 pid_arcin = 0x6080
 
+hid_nemsys = 0x1ccf
+pid_nemsys = 0x1014
+
 hiddev = hidapi.hid_open(hid_arcin, pid_arcin, None)
+
+if not hiddev:
+	hiddev = hidapi.hid_open(hid_nemsys, pid_nemsys, None)
 	
 if not hiddev: 
 	raise RuntimeError('Target not found.')
@@ -27,5 +33,5 @@ while 1:
 	y = y >> 6
 	data = x, y
 	if prev != data:
-		print data
+		print(data)
 		prev = data

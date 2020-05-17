@@ -9,11 +9,15 @@ import ctypes
 
 from elftools.elf.elffile import ELFFile
 
-hid_arcin      = 0x1d50
-pid_arcin      = 0x6080
+hid_arcin = 0x1d50
+pid_arcin = 0x6080
+
+hid_nemsys = 0x1ccf
+pid_nemsys = 0x1014
+
 pid_bootloader = 0x6084
 
-e = ELFFile(open('arcin.elf'))
+e = ELFFile(open('build/arcin.elf'))
 
 firmware = ''
 
@@ -42,7 +46,7 @@ if len(firmware) & (64 - 1):
 dev = usb.core.find(idVendor = 0x1234, idProduct = 0x5678)
 
 if not dev:
-	print 'Test board not found.'
+	print('Test board not found.')
 	exit(1)
 
 def set_buttons(value):
@@ -54,17 +58,17 @@ def get_leds():
 def count_qe(value):
 	dev.ctrl_transfer(0xc0, 0xf2, value & 0xffff, 0, 0)
 
-def open_hiddev(pid):
+def open_hiddev(hid, pid):
 	global hiddev
 	
 	hidapi.hid_exit()
-	hiddev = hidapi.hid_open(hid_arcin, pid, None)
+	hiddev = hidapi.hid_open(hid, pid, None)
 	
 	if not hiddev: 
 		raise RuntimeError('Target not found.')
 
 def flash_board():
-	print 'Found bootloader device, starting flashing.'
+	print('Found bootloader device, starting flashing.')
 	
 	# Prepare
 	if hidapi.hid_send_feature_report(hiddev, ctypes.c_char_p('\x00\x20'), 2) != 2:
@@ -82,7 +86,7 @@ def flash_board():
 	if hidapi.hid_send_feature_report(hiddev, ctypes.c_char_p('\x00\x21'), 2) != 2:
 		raise RuntimeError('Finish failed.')
 	
-	print 'Flashing finished, resetting to runtime.'
+	print('Flashing finished, resetting to runtime.')
 	
 	# Reset
 	if hidapi.hid_send_feature_report(hiddev, ctypes.c_char_p('\x00\x11'), 2) != 2:
@@ -144,7 +148,7 @@ def test_qe(value):
 		raise TestFail('qe2')
 
 def test_all():
-	print 'Testing leds.'
+	print('Testing leds.')
 	
 	test_leds(0)
 	test_leds(0x7ff)
@@ -152,7 +156,7 @@ def test_all():
 	for i in range(11):
 		test_leds(1 << i)
 	
-	print 'Testing buttons.'
+	print('Testing buttons.')
 	
 	test_buttons(0)
 	test_buttons(0x7ff)
@@ -160,20 +164,20 @@ def test_all():
 	for i in range(11):
 		test_buttons(1 << i)
 	
-	print 'Testing encoders.'
+	print('Testing encoders.')
 	
 	test_qe(5)
 	test_qe(5)
 	test_qe(-5)
 	test_qe(-5)
 	
-	print 'All passed.'
+	print('All passed.')
 
 def process():
 	try:
-		open_hiddev(pid_arcin)
+		open_hiddev(hid_arcin, pid_arcin)
 		
-		print 'Found runtime device, resetting to bootloader.'
+		print('Found runtime device, resetting to bootloader.')
 		
 		# Reset bootloader
 		if hidapi.hid_send_feature_report(hiddev, ctypes.c_char_p('\x00\x10'), 2) != 2:
@@ -184,21 +188,19 @@ def process():
 		pass
 	
 	try:
-		open_hiddev(pid_bootloader)
+		open_hiddev(hid_arcin, pid_bootloader)
 		
 		flash_board()
 		
 		time.sleep(1)
 		
-		open_hiddev(pid_arcin)
-		
+		# open_hiddev(hid_nemsys, pid_nemsys)
+		open_hiddev(hid_arcin, pid_arcin)
+
 		test_all()
 	
-	except TestFail, e:
-		print 'Test failed:', e
-	
-	except RuntimeError, e:
-		print 'Error:', e
+	except e:
+		print('Test failed:', e)
 
 while 1:
 	raw_input('Press enter to start\n')

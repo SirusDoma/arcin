@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Usage: hidloader_append.py arcin.elf hidloader_v2.exe arcin_flash_foo.exe
+# Usage: hidloader_append.py nemsys.elf hidloader_v2.exe arcin_flash_nemsys.exe
 
 import sys, struct, shutil
 from elftools.elf.elffile import ELFFile
@@ -13,7 +13,8 @@ f = open(sys.argv[3], 'ab')
 buf = ''
 
 hid_arcin      = 0x1d50
-pid_arcin      = 0x6080
+hid_nemsys     = 0x1ccf
+pid_nemsys     = 0x1014
 pid_bootloader = 0x6084
 
 for segment in sorted(e.iter_segments(), key = lambda x: x.header.p_paddr):
@@ -42,8 +43,8 @@ fsize = f.tell()
 f.write(struct.pack('<IHHHHHHI',
 	0xb007f00d,
 	1,
-	hid_arcin,
-	pid_arcin,
+	hid_nemsys,
+	pid_nemsys,
 	hid_arcin,
 	pid_bootloader,
 	0x0110,
