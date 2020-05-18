@@ -1,6 +1,6 @@
 import ctypes, ctypes.util
 
-path = ctypes.util.find_library('hidapi-libusb')
+path = ctypes.util.find_library('hidapi.dll')
 
 if not path:
 	raise ImportError('Cannot find hidapi library')

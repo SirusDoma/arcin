@@ -199,8 +199,11 @@ def process():
 
 		test_all()
 	
-	except e:
+	except TestFail, e:
 		print('Test failed:', e)
+
+	except RuntimeError, e:
+		print('Error:', e)
 
 while 1:
 	raw_input('Press enter to start\n')
