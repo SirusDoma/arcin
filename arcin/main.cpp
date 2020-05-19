@@ -409,7 +409,9 @@ int main() {
 		axis_2 = &axis_qe2;
 	}
 
-	ws2812b.init();
+	if (config.ws2812b_mode) {
+		ws2812b.init();
+	}
 
 	uint8_t last_x = 0;
 	uint8_t last_y = 0;
