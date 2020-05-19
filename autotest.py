@@ -12,7 +12,7 @@ from elftools.elf.elffile import ELFFile
 pid_runtime = 0x6080
 pid_bootloader = 0x6084
 
-e = ELFFile(open('arcin.elf'))
+e = ELFFile(open('build/arcin.elf'))
 
 firmware = ''
 
