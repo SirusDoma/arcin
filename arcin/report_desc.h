@@ -13,17 +13,17 @@ auto report_desc = gamepad(
 	usage_page(UsagePage::Desktop),
 	usage(DesktopUsage::X),
 	logical_minimum(0),
-	logical_maximum(65535),
+	logical_maximum(255),
 	report_count(1),
-	report_size(16),
+	report_size(8),
 	input(0x02),
 
 	usage_page(UsagePage::Desktop),
 	usage(DesktopUsage::Y),
 	logical_minimum(0),
-	logical_maximum(65535),
+	logical_maximum(255),
 	report_count(1),
-	report_size(16),
+	report_size(8),
 	input(0x02),
 	
 	// Outputs.
@@ -226,8 +226,8 @@ auto report_desc = gamepad(
 struct input_report_t {
 	uint8_t report_id;
 	uint16_t buttons;
-	uint16_t axis_x;
-	uint16_t axis_y;
+	uint8_t axis_x;
+	uint8_t axis_y;
 } __attribute__((packed));
 
 struct output_report_t {

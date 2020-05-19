@@ -303,18 +303,14 @@ class AnalogAxis : public Axis {
 			Time::sleep(2);
 
 			// Calibrate ADC.
-			// ADEN = 0
 			adc.CR |= 0 << 30; // ADCALDIF
 			adc.CR |= 1 << 31; // ADCAL
 			while(!(adc.CR & (1 << 31))); // wait until ADCAL = 0
-			// ADC_CALFACT set?
 
 			// Configure continous capture on one channel.
-			adc.CFGR = (1 << 13) | (1 << 12) | (1 << 5); // CONT, OVRMOD, ALIGN
-			adc.SQR1 = (ch << 6);
-
-			// RIP sampling rate change, back to defaults
-			//adc.SMPR1 = (7 << (ch * 3)); // 72 MHz / 64 / 614 = apx. 1.8 kHz
+			adc.CFGR  = (1 << 13) | (1 << 12) | (1 << 5); // CONT, OVRMOD, ALIGN
+			adc.SQR1  = (ch << 6);
+			adc.SMPR1 = (7 << (ch * 3)); // 72 MHz / 64 / 614 = apx. 1.8 kHz
 
 			// Enable ADC.
 			adc.CR |= 1 << 0; // ADEN
@@ -335,9 +331,6 @@ AnalogAxis axis_ana2(ADC2, 4);
 
 int main() {
 	rcc_init();
-
-	// Set ADC12PRES to /64.
-	//RCC.CFGR2 |= (0x19 << 4);
 
 	// Set ADC12PRES to /1.
 	RCC.CFGR2 |= (0x10 << 4);
@@ -378,16 +371,14 @@ int main() {
 
 	Axis* axis_1;
 
-	if(1) {
+	if(0) {
 		RCC.enable(RCC.ADC12);
-
 		axis_ana1.enable();
 
 		axis_1 = &axis_ana1;
 
 	} else {
 		RCC.enable(RCC.TIM2);
-
 		axis_qe1.enable(config.flags & (1 << 1), config.qe1_sens);
 
 		qe1a.set_af(1);
@@ -400,20 +391,18 @@ int main() {
 
 	Axis* axis_2;
 
-	if(1) {
+	if(0) {
 		RCC.enable(RCC.ADC12);
-
 		axis_ana2.enable();
 
 		axis_2 = &axis_ana2;
 
 	} else {
 		RCC.enable(RCC.TIM3);
-
 		axis_qe2.enable(config.flags & (1 << 2), config.qe2_sens);
 
-		qe2a.set_af(1);
-		qe2b.set_af(1);
+		qe2a.set_af(2);
+		qe2b.set_af(2);
 		qe2a.set_mode(Pin::AF);
 		qe2b.set_mode(Pin::AF);
 
@@ -422,35 +411,11 @@ int main() {
 
 	ws2812b.init();
 
-		/* Define variables for old smoothing
-			 and button simulation code.
-
 	uint8_t last_x = 0;
 	uint8_t last_y = 0;
 
 	int8_t state_x = 0;
 	int8_t state_y = 0;
-
-		*/
-
-		/* Set variables and initialize array
-			 for axis moving average.
-	 	   See below for an example and caveats.
-
-	const uint16_t qe1_numReadings = 250;
-	uint32_t qe1_readings[qe1_numReadings]; // Create array of [x] readings and initialize it
-	uint16_t qe1_readIndex = 0; // Position in the array, starting at 0
-	uint32_t qe1_total = 0;
-	uint32_t qe1_avg = 0;
-
-	for (uint32_t qe1_thisReading = 0; qe1_thisReading < qe1_numReadings; qe1_thisReading++) {
-		qe1_readings[qe1_thisReading] = 0;
-	}
-
-  	*/
-
-	uint32_t qe1_count = 0;
-	uint32_t qe2_count = 0;
 
 	while(1) {
 		usb.process();
@@ -472,68 +437,17 @@ int main() {
 		}
 
 		if(usb.ep_ready(1)) {
-
-			/* Old axis code - raw ADC reading (no smoothing)
-
 			uint32_t qe1_count = axis_1->get();
 			uint32_t qe2_count = axis_2->get();
-
-			*/
-
-			// New axis code - basic static averaging
-
-				// Initialize both axes to zero
-			qe1_count = 0;
-			qe2_count = 0;
-			uint16_t qe_samples = 1000; // # of samples for averaging.
-
-				// Sample qe_samples times and add the values
-			for (uint16_t i=0; i < qe_samples; i++) {
-				qe1_count += axis_1->get();
-				qe2_count += axis_2->get();
-			}
-				// Average the values
-			qe1_count /= qe_samples;
-			qe2_count /= qe_samples;
-
-				// --------
-
-			/* If you wanna try a moving average, here is an example!
-				 In my testing it doesn't respond to changes quick enough
-				 to be useful for rhythm games though. With a low enough
-				 sample array size to be responsive, it's not enough smoothing.
-
-			qe1_total = qe1_total - qe1_readings[qe1_readIndex];
-  				// read from the sensor:
-  		qe1_readings[qe1_readIndex] = axis_1->get();
-  				// add the reading to the total:
-  		qe1_total = qe1_total + qe1_readings[qe1_readIndex];
-  				// advance to the next position in the array:
-  		qe1_readIndex = qe1_readIndex + 1;
-  				// if we're at the end of the array...
-  		if (qe1_readIndex >= qe1_numReadings) {
-    			// ...wrap around to the beginning:
-    	qe1_readIndex = 0;
-			}
-  				// calculate the average:
-  		qe1_avg = qe1_total / qe1_numReadings;
-			qe1_count = qe1_avg;
-
-			*/
-
-				// --------
-
-			/* Older smoothing/button sim code.
-				 Note: not adapted for 16-bit.
 
 			int8_t rx = qe1_count - last_x;
 			int8_t ry = qe2_count - last_y;
 
-			if(rx > 2) {
-				state_x = 50;
+			if(rx > 1) {
+				state_x = 100;
 				last_x = qe1_count;
-			} else if(rx < -2) {
-				state_x = -50;
+			} else if(rx < -1) {
+				state_x = -100;
 				last_x = qe1_count;
 			} else if(state_x > 0) {
 				state_x--;
@@ -543,11 +457,11 @@ int main() {
 				last_x = qe1_count;
 			}
 
-			if(ry > 2) {
-				state_y = 50;
+			if(ry > 1) {
+				state_y = 100;
 				last_y = qe2_count;
-			} else if(ry < -2) {
-				state_y = -50;
+			} else if(ry < -1) {
+				state_y = -100;
 				last_y = qe2_count;
 			} else if(state_y > 0) {
 				state_y--;
@@ -555,15 +469,6 @@ int main() {
 			} else if(state_y < 0) {
 				state_y++;
 				last_y = qe2_count;
-			}
-
-				// SVRE9 smoothing hack: ignore deltas of 1-2
-				// (Note: this was 8-bit dependent)
-			if(rx >= -2 && rx <= 2 && rx != 0) {
-				qe1_count -= rx;
-			}
-			if(ry >= -2 && ry <= 2 && ry != 0) {
-				qe2_count -= ry;
 			}
 
 			if(state_x > 0) {
@@ -590,10 +495,7 @@ int main() {
 				qe2_count *= config.qe2_sens;
 			}
 
-			*/
-
-			input_report_t report = {1, buttons, uint16_t(qe1_count), uint16_t(qe2_count)};
-
+			input_report_t report = {1, buttons, uint8_t(qe1_count), uint8_t(qe2_count)};
 			usb.write(1, (uint32_t*)&report, sizeof(report));
 		}
 	}
