@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Usage: hidloader_append.py nemsys.elf hidloader_v2.exe arcin_flash_nemsys.exe
+# Usage: flash_gen.py build/arcin.elf flash.exe arcin_flash_foo.exe
 
 import sys, struct, shutil
 from elftools.elf.elffile import ELFFile

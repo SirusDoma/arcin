@@ -1,10 +1,10 @@
 define flash
-file arcin.elf
+file build/arcin.elf
 load
 end
 
 define flash_bootloader
-file bootloader.elf
+file build/bootloader.elf
 load
 end
 
@@ -22,6 +22,6 @@ mon jtag_scan
 attach 1
 end
 
-file arcin.elf
+file build/arcin.elf
 
 set mem inaccessible-by-default off
