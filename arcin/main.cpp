@@ -371,7 +371,7 @@ int main() {
 
 	Axis* axis_1;
 
-	if(0) {
+	if(config.analog_mode) {
 		RCC.enable(RCC.ADC12);
 		axis_ana1.enable();
 
@@ -391,7 +391,7 @@ int main() {
 
 	Axis* axis_2;
 
-	if(0) {
+	if(config.analog_mode) {
 		RCC.enable(RCC.ADC12);
 		axis_ana2.enable();
 
