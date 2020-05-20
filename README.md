@@ -21,11 +21,15 @@ In addition to Horocchi fork, this repo contains:
 - B6: FX R
 - B9: Start
 
-Note that WS2812B need to be disabled since Start button require B9 to work properly. (TODO: Remap to other capable button)
+This frimware will modify Arcin Hardware Ids and Product Ids to work, becareful when you modify arcin config when connecting real official controller (Entry Model or Ultimate Model), any change you made into official controller may irreversible!  
+
+You'll need to boot into bootloader mode if you ever want to re-flash your arcin with your frimware of choice, runtime mode will not detected by frimware executable since Hardware and Product Ids is altered. To enter bootloader, press B1 + B2 when connecting arcin into PC.  
+
+Note that WS2812B need to be disabled since Start button require B9 to work properly. (TODO: Remap WS2812B).
 
 Pre-Built Images
 ----------------
-Latest prebuilt image of nemsys branch can be downloaded (here)[https://github.com/SirusDoma/arcin/releases]
+Latest frimware executable of `sdvx-nemsys-eacloud` branch can be downloaded (here)[https://github.com/SirusDoma/arcin/releases]
 
 Setup
 -----
