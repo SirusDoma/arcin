@@ -194,8 +194,8 @@ def process():
 		
 		time.sleep(1)
 		
-		# open_hiddev(hid_nemsys, pid_nemsys)
-		open_hiddev(hid_arcin, pid_arcin)
+		open_hiddev(hid_nemsys, pid_nemsys)
+		# open_hiddev(hid_arcin, pid_arcin)
 
 		test_all()
 	
