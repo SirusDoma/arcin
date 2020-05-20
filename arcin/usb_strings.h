@@ -24,8 +24,9 @@ class USB_strings : public USB_class_driver {
 			// Get string descriptor.
 			if(bmRequestType == 0x80 && bRequest == 0x06 && (wValue & 0xff00) == 0x0300) {
 				const void* desc = nullptr;
-				uint16_t buf[64] = {0x300};
+				uint16_t data[64] = {0x300};
 				uint32_t i = 1;
+				uint8_t length = 0;
 				
 				switch(wValue & 0xff) {
 					case 0:
@@ -33,39 +34,58 @@ class USB_strings : public USB_class_driver {
 						break;
 					
 					case 1:
-						desc = u"\u0308zyp";
+						desc = "";
 						break;
 					
 					case 2:
-						for(const char* p = "arcin"; *p; p++) {
-							buf[i++] = *p;
+						for(const char* p = "SOUND VOLTEX controller"; *p; p++) {
+							data[i++] = *p;
 						}
 						
 						if(label[0]) {
-							buf[i++] = ' ';
-							buf[i++] = '(';
+							data[i++] = ' ';
 							
 							for(const uint8_t* p = label; *p; p++) {
-								buf[i++] = *p;
+								data[i++] = *p;
 							}
 							
-							buf[i++] = ')';
+							data[i++] = ' ';
+							for(const char* p = "Model"; *p; p++) {
+								data[i++] = *p;
+							}
+						} else {
+							for(const char* p = "Arcin Model"; *p; p++) {
+								data[i++] = *p;
+							}
 						}
 						
-						buf[0] |= i * 2;
-						
-						desc = buf;
-						break;
-					
+						data[0] |= i * 2;
+						desc = data;
+						length = *(uint8_t*)desc;
+						if(length > wLength) {
+							length = wLength;
+						}
+
+						while(length > 64) {
+							usb.write(0, (uint32_t*)desc, uint8_t(64));
+							desc += 64;
+							length -= 64;
+							
+							while(!usb.ep_ready(0));
+						}
+
+						usb.write(0, (uint32_t*)desc, length);
+						return SetupStatus::Ok;
+
 					case 3:
 						{
-							buf[0] = 0x0312;
+							data[0] = 0x0312;
 							uint32_t id = serial_num();
 							for(int i = 8; i > 0; i--) {
-								buf[i] = (id & 0xf) > 9 ? 'A' + (id & 0xf) - 0xa : '0' + (id & 0xf);
+								data[i] = (id & 0xf) > 9 ? 'A' + (id & 0xf) - 0xa : '0' + (id & 0xf);
 								id >>= 4;
 							}
-							desc = buf;
+							desc = data;
 						}
 						break;
 				}

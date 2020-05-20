@@ -37,7 +37,7 @@ Configloader configloader(0x801f800);
 
 config_t config;
 
-auto dev_desc = device_desc(0x200, 0, 0, 0, 64, nemsys_hardware_id, nemsys_product_id, 0x110, 1, 2, 3, 1);
+auto dev_desc = device_desc(0x200, 0, 0, 0, 64, nemsys_hardware_id, nemsys_product_id, 0x410, 1, 2, 3, 1);
 auto conf_desc = configuration_desc(1, 1, 0, 0xc0, 0,
 	// HID interface.
 	interface_desc(0, 0, 1, 0x03, 0x00, 0x00, 0,
