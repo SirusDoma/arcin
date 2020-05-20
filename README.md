@@ -4,23 +4,28 @@ This repository contains firmware code for the arcin v1.1, a custom game control
 
 This repository also contains necessary files for building and testing firmware, as well as creating binaries that can be distributed to users to easily flash their arcin.
 
-Credits for the original codebase, forked repos, and many changes: zyp, K, handrew
+Credits for the original codebase, forked repos, and many changes: zyp, K, handrew, Horocchi
 
 The original codebase by zyp can be found at: http://cgit.jvnv.net/arcin/log/?h=conf
 
 Branches
 --------
-Each branch contains its own modifications made with a specific game/controller in mind.
+In addition to Horocchi fork, this repo contains:
 
-`sdvx-ac8` is intended for use with DJ Dao SVRE9 or SVSE5 game controllers outfitted with arcade-style encoders (digital potentiometers). In addition to implementing software-based smoothing, it is also configured to use the B9 connector to control WS2812B LED strips via HID lighting in supported games.
+`sdvx-nemsys eacloud` is a frimware to support SOUND VOLTEX III e-AMUSEMENT CLOUD natively as a gamepad. You'll need to bind your keys with following schemes:
+- B1: BT A
+- B2: BT B
+- B3: BT C
+- B4: BT D
+- B5: FX L
+- B6: FX R
+- B9: Start
 
-`sdvx-ac16` is the same as `sdvx-ac8` except it is modified to capture/output a 16-bit value for the two "analog" axes. This is useful for games that natively accept a more precise 16-bit value for these axes.
-
-*Note:* either of these firmwares can technically be used with any basic "analog" potentiometer. If using a digital potentiometer it must have an operating voltage of 3.3v (for example, digital pots that require 5v VCC will not work with the arcin). The firmwares in this repository do not natively support Copal, Bourns, or any other types of rotary encoders, although the arcin hardware does support them.
+Note that WS2812B need to be disabled since Start button require B9 to work properly. (TODO: Remap to other capable button)
 
 Pre-Built Images
 ----------------
-If you are only interested in a pre-compiled binary, the `bin` folder of each branch contains an up-to-date EXE you can use to flash your device.
+Latest prebuilt image of nemsys branch can be downloaded (here)[https://github.com/SirusDoma/arcin/releases]
 
 Setup
 -----
