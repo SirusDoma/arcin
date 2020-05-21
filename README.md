@@ -29,7 +29,7 @@ Note that WS2812B need to be disabled since Start button require B9 to work prop
 
 Pre-Built Images
 ----------------
-Latest frimware executable of `sdvx-nemsys-eacloud` branch can be downloaded (here)[https://github.com/SirusDoma/arcin/releases]
+Latest frimware executable of `sdvx-nemsys-eacloud` branch can be downloaded [here](https://github.com/SirusDoma/arcin/releases)
 
 Setup
 -----
