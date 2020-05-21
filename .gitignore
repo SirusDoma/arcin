@@ -4,4 +4,3 @@ build
 *.swp
 *.pyc
 .sconsign.dblite
-build/
