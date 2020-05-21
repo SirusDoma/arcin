@@ -14,7 +14,7 @@ buf = ''
 
 hid_arcin      = 0x1d50
 hid_nemsys     = 0x1ccf
-pid_nemsys     = 0x1014
+pid_nemsys     = 0x101c
 pid_bootloader = 0x6084
 
 for segment in sorted(e.iter_segments(), key = lambda x: x.header.p_paddr):

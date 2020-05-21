@@ -13,7 +13,7 @@ hid_arcin = 0x1d50
 pid_arcin = 0x6080
 
 hid_nemsys = 0x1ccf
-pid_nemsys = 0x1014
+pid_nemsys = 0x101c
 
 pid_bootloader = 0x6084
 

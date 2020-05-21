@@ -34,7 +34,7 @@ class USB_strings : public USB_class_driver {
 						break;
 					
 					case 1:
-						desc = "";
+						desc = u"\u0308";
 						break;
 					
 					case 2:

@@ -17,7 +17,7 @@ const uint16_t arcin_hardware_id = 0x1d50;
 const uint16_t arcin_product_id  = 0x6080;
 
 const uint16_t nemsys_hardware_id = 0x1ccf;
-const uint16_t nemsys_product_id  = 0x1014;
+const uint16_t nemsys_product_id  = 0x101c;
 
 static uint32_t& reset_reason = *(uint32_t*)0x10000000;
 

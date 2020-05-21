@@ -9,7 +9,7 @@ hid_arcin = 0x1d50
 pid_arcin = 0x6080
 
 hid_nemsys = 0x1ccf
-pid_nemsys = 0x1014
+pid_nemsys = 0x101c
 
 hiddev = hidapi.hid_open(hid_arcin, pid_arcin, None)
 
